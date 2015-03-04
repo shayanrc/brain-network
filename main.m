@@ -13,17 +13,17 @@ function [err grad output]= main()
   layer2.grad=zeros(1,16);
   
   %brainLayer : interconnected layers , each layer has 3 neurons with 3*16 inputs
-  brainLayer(1).weights=(6,6*16);  
+  brainLayer(1).weights=randn(6,6*16);  
   brainLayer(1).grad=zeros(1,6);
-  brainLayer(2).weights=(6,6*16);  
+  brainLayer(2).weights=randn(6,6*16);  
   brainLayer(2).grad=zeros(1,6);
-  brainLayer(3).weights=(6,6*16);  
+  brainLayer(3).weights=randn(6,6*16);  
   brainLayer(3).grad=zeros(1,6);
   
   outputLayer.weights=randn(121,16);
   outputLayer.grad=zeros(1,121);
   
-  brainLayerIO=; %matrix containing the output of each brainLayer; also serves as the input for all brainLayers
+  %brainLayerIO; %matrix containing the output of each brainLayer; also serves as the input for all brainLayers
   
   
   
