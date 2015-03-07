@@ -8,25 +8,31 @@ function [err grad output]= main()
 
   inputLayer.weights=randn(961,16); %961 neurons with 16 inputs each
   inputLayer.grad=zeros(1,961);
+  inputLayer.outputs=zeros(1,961);
   
   layer2.weights=randn(16,961); %16 neurons with 961 inputs each
   layer2.grad=zeros(1,16);
+  layer2.outputs=zeros(1,16);
   
-  %brainLayer : interconnected layers , each layer has 3 neurons with 3*16 inputs
-  brainLayer(1).weights=randn(6,6*16);  
-  brainLayer(1).grad=zeros(1,6);
-  brainLayer(2).weights=randn(6,6*16);  
-  brainLayer(2).grad=zeros(1,6);
-  brainLayer(3).weights=randn(6,6*16);  
-  brainLayer(3).grad=zeros(1,6);
+  %brainLayer : interconnected layers , each layer has 16 neurons with 3(no of layers)*16 inputs
+  brainLayer(1).weights=randn(16,4*16);  
+  brainLayer(1).grad=zeros(1,16);
+  brainLayer(1).outputs=zeros(1,16);
+  brainLayer(2).weights=randn(16,4*16);  
+  brainLayer(2).grad=zeros(1,16);
+  brainLayer(2).outputs=zeros(1,16);
+  brainLayer(3).weights=randn(6,4*16);  
+  brainLayer(3).grad=zeros(1,16);
+  brainLayer(3).outputs=zeros(1,16);
   
   outputLayer.weights=randn(121,16);
   outputLayer.grad=zeros(1,121);
+  outputLayer.outputs=zeros(1,121);
   
-  %brainLayerIO; %matrix containing the output of each brainLayer; also serves as the input for all brainLayers
+  brainLayerIO=zeros(4,16); %matrix containing the output of each brainLayer; also serves as the input for all brainLayers
   
   
-  
+  %<forward-loop>
   InputProcessorOutputs=rowInputForward(inputLayer.weights,inputMat,@sigmoid);
   
   
@@ -34,12 +40,17 @@ function [err grad output]= main()
   
   
   desiredOutputs=zeros(size(layer2Outputs));
-  %errors=zeros(1,961);
+  
+  %</forward-loop>
+  
   [err grad]=sigmoidCostFunction (layer2Outputs,desiredOutputs);
   output=layer2Outputs;
   layer2.grad=grad;
   %imagesc(inputLayer.grad);
   inputLayer.grad=backpropagate(layer2.grad,layer2.weights);
+  
+  layer2.weights=modifyWeights(learningRate,layer2.grad,layer2.weights,sigmoidDerivative(layer2Outputs),InputProcessorOutputs);
+  
   %pause;
   
   %imagesc(inputLayer.grad);
@@ -47,7 +58,6 @@ function [err grad output]= main()
   %imagesc(layer2.weights);
   %pause;
   
-  layer2.weights=modifyWeights(learningRate,layer2.grad,layer2.weights,sigmoidDerivative(layer2Outputs),InputProcessorOutputs);
   
   %imagesc(layer2.weights);
   
