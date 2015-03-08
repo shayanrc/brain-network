@@ -21,7 +21,7 @@ function [err grad output]= main()
   brainLayer(2).weights=randn(16,4*16);  
   brainLayer(2).grad=zeros(1,16);
   brainLayer(2).outputs=zeros(1,16);
-  brainLayer(3).weights=randn(6,4*16);  
+  brainLayer(3).weights=randn(16,4*16);  
   brainLayer(3).grad=zeros(1,16);
   brainLayer(3).outputs=zeros(1,16);
   
@@ -33,18 +33,29 @@ function [err grad output]= main()
   
   
   %<forward-loop>
-  InputProcessorOutputs=rowInputForward(inputMat,inputLayer.weights,@sigmoid);
+  InputProcessorOutputs=rowInputForward(inputMat,inputLayer.weights,@sigmoid); % forward for first layer
   
   
-  layer2Outputs=forward (InputProcessorOutputs,layer2.weights,@softmax);
+  brainLayerIO(1,:)=forward (InputProcessorOutputs,layer2.weights,@sigmoid); % forward for layer2
   
   
-  desiredOutputs=zeros(size(layer2Outputs));
   
+  for i=1:numel(brainLayer)
+    
+    brainLayerIO(i+1,:)=forward(brainLayerIO(:)',brainLayer(i).weights,@sigmoid)';
+    
+  endfor
+  
+  output=forward(brainLayerIO(end,:),outputLayer.weights,@sigmoid);
+  desiredOutputs=zeros(size( brainLayerIO(1,:))); %replace with getDesiredOutput
+  desiredOutputs(7)=1; %simulated category
   %</forward-loop>
   
-  [err grad]=sigmoidCostFunction (layer2Outputs,desiredOutputs);
-  output=layer2Outputs;
+  %<error and gradient calculation>
+  [err grad]=sigmoidCostFunction (output,desiredOutputs);
+  %</error and gradient calculation>
+  
+  %output=layer2Outputs;
   layer2.grad=grad;
   %imagesc(inputLayer.grad);
   inputLayer.grad=backpropagate(layer2.grad,layer2.weights);
