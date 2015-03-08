@@ -33,10 +33,10 @@ function [err grad output]= main()
   
   
   %<forward-loop>
-  InputProcessorOutputs=rowInputForward(inputLayer.weights,inputMat,@sigmoid);
+  InputProcessorOutputs=rowInputForward(inputMat,inputLayer.weights,@sigmoid);
   
   
-  layer2Outputs=forward (layer2.weights,InputProcessorOutputs,@softmax);
+  layer2Outputs=forward (InputProcessorOutputs,layer2.weights,@softmax);
   
   
   desiredOutputs=zeros(size(layer2Outputs));
