@@ -14,7 +14,7 @@ function [err grad output]= main()
   layer2.grad=zeros(1,16);
   layer2.outputs=zeros(1,16);
   
-  %brainLayer : interconnected layers , each layer has 16 neurons with 3(no of layers)*16 inputs
+  %brainLayer : interconnected layers , each layer has 16 neurons with 3(no of layers)+1 (output of previous layer)*16 inputs
   brainLayer(1).weights=randn(16,4*16);  
   brainLayer(1).grad=zeros(1,16);
   brainLayer(1).outputs=zeros(1,16);
@@ -47,18 +47,37 @@ function [err grad output]= main()
   endfor
   
   output=forward(brainLayerIO(end,:),outputLayer.weights,@sigmoid);
-  desiredOutputs=zeros(size( brainLayerIO(1,:))); %replace with getDesiredOutput
+  desiredOutputs=zeros(size( output)); %replace with getDesiredOutput
   desiredOutputs(7)=1; %simulated category
   %</forward-loop>
   
   %<error and gradient calculation>
   [err grad]=sigmoidCostFunction (output,desiredOutputs);
-  %</error and gradient calculation>
   
-  %output=layer2Outputs;
-  layer2.grad=grad;
-  %imagesc(inputLayer.grad);
+  outputLayer.grad=grad';
+  %</error and gradient calculation>
+ 
+  %<backpropagation> 
+  
+  brainLayerGrad=zeros(4,16);
+  brainLayerGrad(4,:)+=backpropagate(outputLayer.grad,outputLayer.weights);
+  brainLayerGrad(:)+=backpropagate(brainLayerGrad(4,:),brainLayer(3).weights)';
+  brainLayerGrad(:)+=backpropagate(brainLayerGrad(3,:),brainLayer(2).weights)';
+  brainLayerGrad(:)+=backpropagate(brainLayerGrad(2,:),brainLayer(1).weights)';
+  
+  %brainLayerGrad(:)+=backpropagate(brainLayer(1).grad,brainLayer(1).weights)';
+  
+  
+  brainLayer(3).grad=brainLayerGrad(4,:);
+  brainLayer(2).grad=brainLayerGrad(3,:);
+  brainLayer(1).grad=brainLayerGrad(2,:);
+  
+  layer2.grad=brainLayerGrad(1,:);
+  
   inputLayer.grad=backpropagate(layer2.grad,layer2.weights);
+  
+  
+  %</backpropagation>
   
   layer2.weights=modifyWeights(learningRate,layer2.grad,layer2.weights,sigmoidDerivative(layer2Outputs),InputProcessorOutputs);
   

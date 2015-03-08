@@ -61,7 +61,7 @@ endfunction
 %note: this function should be called for a layer before modifyWeights
 function prevLayerGrad=backpropagate(partGrad,weights)
  %prevLayerGrad=partGrad*weights; %Original
-prevLayerGrad=partGrad'*weights;
+prevLayerGrad=partGrad*weights;
 endfunction
 
 %==============Modify Weights functions==============
