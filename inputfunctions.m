@@ -72,7 +72,7 @@ function dataElementStruct = getTrainingSet(dirName)
       for index = 1:length(fileList)
         
         fileName = fileList{index};
-        disp(sprintf("generating trainingset for file %s \n",fileName));
+        %disp(sprintf("generating trainingset for file %s \n",fileName));
         dirPath = file_in_loadpath(nextDir);
         filePath = strcat(dirPath,filesep(),fileName);
         finalPosArr = getImageCategory(filePath); 
@@ -88,6 +88,29 @@ function dataElementStruct = getTrainingSet(dirName)
      endfor
      
 endfunction
+
+
+function dataElementStruct = getTestSet(dirName)
+  dirData = dir(dirName)  ;    %# Get the data for the current directory
+  dirIndex = [dirData.isdir];  %# Find the index for directories
+  fileList = {dirData(~dirIndex).name} ; %'# Get a list of the files
+  subDirs = {dirData(dirIndex).name};  %# Get a list of the subdirectories
+  validIndex = ~ismember(subDirs,{'.','..'}); %# Find index of subdirectories
+                                            %#   that are not '.' or '..'
+  dataStructArr = zeros(1);
+  dataElementStruct = struct();
+  nextDir = fullfile(dirName,validIndex) ;  %# Get the subdirectory path
+   for index = 1:length(fileList)
+        fileName = fileList{index};
+        dirPath = file_in_loadpath(nextDir);
+        filePath = strcat(dirPath,fileName);
+        dataElementStruct(index).fileDir = filePath;
+        dataElementStruct(index).imageName = fileName;
+       
+    endfor
+     
+endfunction
+
 
 function dataStructTemp = getDataStructEle(dataStructTemp,finalPosArr,imageArr,nextDir,fileName)
       
