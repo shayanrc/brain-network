@@ -43,7 +43,7 @@ function outputs =forward(inputs,weights,activation)
 % weights: the weights matrix (no. of rows = no of neurons in layer & no. of columns = no. of inputs)
 % no of columns of inputs and weights must be equal  outputs=weights*inputs';
   outputs=weights*inputs';
-  outputs=activation(outputs);
+  outputs=activation(outputs)';
 endfunction
 
 function outputs = rowInputForward(inputs,weights,activation)
@@ -72,12 +72,35 @@ function changedweights = modifyWeights(learningRate, costDerivative, weights, a
   %learningRate : learning rate of the network (scalar)
   %weights : weights matrix of a layer
   %partGrad : derivative of the cost function / propagated error
-  weightChanges=learningRate*costDerivative.*activationDerivative;
-  %weightChanges=weightChanges'*inputs; %Original
-  weightChanges=weightChanges*inputs;
+  weightChanges=learningRate*(costDerivative.*activationDerivative);
+  %weightChanges=activationDerivative.*costDerivative';
+  %weightChanges*=learningRate;
+  weightChanges=weightChanges'*inputs; %Original
+  %weightChanges=weightChanges*inputs;
   
   %colorbar;
   %imagesc(weights)
+  
+  changedweights=weights+weightChanges;
+  
+  %imagesc(weights);
+endfunction
+
+function changedweights = modifyRowWeights(learningRate, costDerivative, weights, activationDerivative, inputs)
+  %modifyRowWeights : function to modifiy weights for convulational layer
+  %learningRate : learning rate of the network (scalar)
+  %weights : weights matrix of a layer
+  %partGrad : derivative of the cost function / propagated error
+  
+  %weightChanges=learningRate*(costDerivative.*activationDerivative);
+  %weightChanges=weightChanges'*inputs; %Original
+  
+  temp=costDerivative.*activationDerivative;
+  weightChanges=zeros(size(weights));
+  
+  for i=1:(size(weights)(1))
+    weightChanges+=temp'*inputs(1,:);
+  endfor
   
   changedweights=weights+weightChanges;
   

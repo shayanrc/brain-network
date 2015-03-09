@@ -39,14 +39,14 @@ function [err grad output]= main()
   brainLayerIO(1,:)=forward (InputProcessorOutputs,layer2.weights,@sigmoid); % forward for layer2
   
   
-  
+  %forward for brain layers
   for i=1:numel(brainLayer)
     
-    brainLayerIO(i+1,:)=forward(brainLayerIO(:)',brainLayer(i).weights,@sigmoid)';
+    brainLayerIO(i+1,:)=forward(brainLayerIO(:)',brainLayer(i).weights,@sigmoid);
     
   endfor
   
-  output=forward(brainLayerIO(end,:),outputLayer.weights,@sigmoid);
+  output=forward(brainLayerIO(end,:),outputLayer.weights,@softmax);
   desiredOutputs=zeros(size( output)); %replace with getDesiredOutput
   desiredOutputs(7)=1; %simulated category
   %</forward-loop>
@@ -54,18 +54,19 @@ function [err grad output]= main()
   %<error and gradient calculation>
   [err grad]=sigmoidCostFunction (output,desiredOutputs);
   
-  outputLayer.grad=grad';
+  outputLayer.grad=grad;
   %</error and gradient calculation>
  
   %<backpropagation> 
   
+  %calculate the backpropagated gradients of the brainlayers separately 
+  %since their no. of inputs don't mach outputs of the previous layer
   brainLayerGrad=zeros(4,16);
   brainLayerGrad(4,:)+=backpropagate(outputLayer.grad,outputLayer.weights);
   brainLayerGrad(:)+=backpropagate(brainLayerGrad(4,:),brainLayer(3).weights)';
   brainLayerGrad(:)+=backpropagate(brainLayerGrad(3,:),brainLayer(2).weights)';
   brainLayerGrad(:)+=backpropagate(brainLayerGrad(2,:),brainLayer(1).weights)';
   
-  %brainLayerGrad(:)+=backpropagate(brainLayer(1).grad,brainLayer(1).weights)';
   
   
   brainLayer(3).grad=brainLayerGrad(4,:);
@@ -76,13 +77,23 @@ function [err grad output]= main()
   
   inputLayer.grad=backpropagate(layer2.grad,layer2.weights);
   
-  
   %</backpropagation>
   
-  layer2.weights=modifyWeights(learningRate,layer2.grad,layer2.weights,sigmoidDerivative(layer2Outputs),InputProcessorOutputs);
+  %<modify the Weights>
+  %layer2.weights=modifyWeights(learningRate,layer2.grad,layer2.weights,sigmoidDerivative(layer2Outputs),InputProcessorOutputs);
   
-  %pause;
+  outputLayer.weights=modifyWeights(learningRate,outputLayer.grad,outputLayer.weights,sigmoidDerivative(output),brainLayerIO(4,:));
   
+  brainLayer(3).weights=modifyWeights(learningRate,brainLayer(3).grad,brainLayer(3).weights,sigmoidDerivative(brainLayerIO(4,:)),brainLayerIO(:)');
+  brainLayer(2).weights=modifyWeights(learningRate,brainLayer(2).grad,brainLayer(2).weights,sigmoidDerivative(brainLayerIO(3,:)),brainLayerIO(:)');
+  brainLayer(1).weights=modifyWeights(learningRate,brainLayer(1).grad,brainLayer(1).weights,sigmoidDerivative(brainLayerIO(2,:)),brainLayerIO(:)');
+  
+  layer2.weights=modifyWeights(learningRate,layer2.grad,layer2.weights,sigmoidDerivative(brainLayerIO(1,:)),InputProcessorOutputs);
+  
+  inputLayer.weights=modifyRowWeights(learningRate,inputLayer.grad,inputLayer.weights,sigmoidDerivative(InputProcessorOutputs),inputMat);
+  
+  
+  %</modify the Weights>
   %imagesc(inputLayer.grad);
   
   %imagesc(layer2.weights);
