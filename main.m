@@ -1,6 +1,10 @@
 function [err grad output]= main()
   nnfunctions;
   inputfunctions;
+  outputfunctions;
+  
+  initOutput("training.csv");
+  initOutput("test.csv");
   
   learningRate=1;
   %img=normalize(double(imread("input.jpg")));
@@ -36,7 +40,7 @@ function [err grad output]= main()
   outputLayer.outputs=zeros(1,121);
   brainLayerIO=zeros(4,16); %matrix containing the output of each brainLayer; also serves as the input for all brainLayers
   
-  
+  %<training loop>
   for trindex = 1:length(trainingSet)
 
     
@@ -62,13 +66,15 @@ function [err grad output]= main()
     endfor
     
     output=forward(brainLayerIO(end,:),outputLayer.weights,@softmax);
-    desiredOutputs=zeros(size( output)); %replace with getDesiredOutput
-    desiredOutputs(7)=1; %simulated category
+    
+    %desiredOutputs=zeros(size( output)); %replace with getDesiredOutput
+    %desiredOutputs(7)=1; %simulated category
+    desiredOutputs=trainingSet(trindex).categoryArr;
     %</forward-loop>
     
     %<error and gradient calculation>
     [err grad]=sigmoidCostFunction (output,desiredOutputs);
-    
+    writeOutput("training.csv",trainingSet(trindex).fileDir,output); % save output to file
     outputLayer.grad=grad;
     %</error and gradient calculation>
    
@@ -112,12 +118,46 @@ function [err grad output]= main()
   
   endfor
   
-  %imagesc(inputLayer.grad);
-  
-  %imagesc(layer2.weights);
-  %pause;
+  %</training loop>
   
   
-  %imagesc(layer2.weights);
+  
+  testSet = getTestSet("test"); % get training set from folder
+  
+  %<test loop>
+  for testIndex = 1:length(testSet)
+
+    
+    %img=normalize(double(imread("input.jpg")));
+    img=normalize(double(imread(testSet(testIndex).fileDir)));
+    inputMat=makeImgInputs(img,4);
+    
+    %disp(sprintf("testing file %s \n",testSet(testIndex).fileDir));
+    
+    
+    %<forward-loop>
+    InputProcessorOutputs=rowInputForward(inputMat,inputLayer.weights,@sigmoid); % forward for first layer
+    
+    
+    brainLayerIO(1,:)=forward (InputProcessorOutputs,layer2.weights,@sigmoid); % forward for layer2
+    
+    
+    %forward for brain layers
+    for i=1:numel(brainLayer)
+      
+      brainLayerIO(i+1,:)=forward(brainLayerIO(:)',brainLayer(i).weights,@sigmoid);
+      
+    endfor
+    
+    output=forward(brainLayerIO(end,:),outputLayer.weights,@softmax);
+    
+    
+    writeOutput("test.csv",testSet(testIndex).imageName,output); % save output to file
+  
+  
+    %</forward-loop>
+    
+  endfor
+  %</test loop>
   
 endfunction
