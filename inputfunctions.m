@@ -102,15 +102,14 @@ function dataElementStruct = getTestSet(dirName)
   nextDir = fullfile(dirName,validIndex) ;  %# Get the subdirectory path
    for index = 1:length(fileList)
         fileName = fileList{index};
-        dirPath = file_in_loadpath(nextDir);
-        filePath = strcat(dirPath,fileName);
+        %dirPath = file_in_loadpath(nextDir);
+        filePath = strcat(dirName,filesep(),fileName);
         dataElementStruct(index).fileDir = filePath;
         dataElementStruct(index).imageName = fileName;
        
     endfor
      
 endfunction
-
 
 function dataStructTemp = getDataStructEle(dataStructTemp,finalPosArr,imageArr,nextDir,fileName)
       
